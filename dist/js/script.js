@@ -170,19 +170,27 @@
           // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
           const option = param.options[optionId];
           console.log(optionId, option);
+
+          // check if the option (optionId) of a given category (paramId) is selected in a form (formData)
+          const optionSelected = formData[paramId] && formData[paramId].includes(optionId);
+
+          // Adjust the price based on the selection and default status
+          if (optionSelected && !option.default) {
+
+            // option is selected and is not default, add its price
+            price += option.price;
+          }
+          // option is not selected and it's default, subtract its price
+          else if (!optionSelected && option.default) {
+            price -= option.price;
+          }
+          // If option is selected and is default, or option is not selected and is not default, do nothing
         }
       }
 
-      // update calculated price in the HTML thisProduct.priceElem.innerHTML = price;
-
+      // update calculated price in the HTML 
+      thisProduct.priceElem.innerHTML = price;
     }
-
-
-
-
-
-
-
   }
 
   const app = {

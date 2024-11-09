@@ -101,6 +101,8 @@
       thisProduct.priceElem =
         thisProduct.element.querySelector(select.menuProduct.priceElem);
       console.log('priceElem', thisProduct.priceElem);
+      thisProduct.imageWrapper =
+        thisProduct.element.querySelector(select.menuProduct.imageWrapper);
     }
 
     initAccordion() {
@@ -185,9 +187,22 @@
             price -= option.price;
           }
           // If option is selected and is default, or option is not selected and is not default, do nothing
+
+          // Find the image element for this option
+          const optionImage = thisProduct.imageWrapper.querySelector(`.${paramId}-${optionId}`);
+
+          if (optionImage) {
+
+            // Add or remove the 'active' class based on optionSelected
+            if (optionSelected) {
+              optionImage.classList.add(classNames.menuProduct.imageVisible);
+            }
+            else {
+              optionImage.classList.remove(classNames.menuProduct.imageVisible);
+            }
+          }
         }
       }
-
       // update calculated price in the HTML 
       thisProduct.priceElem.innerHTML = price;
     }

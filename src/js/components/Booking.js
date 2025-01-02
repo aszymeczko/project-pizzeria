@@ -11,6 +11,7 @@ class Booking {
         thisBooking.selectedTable = false;
         thisBooking.render(element);
         thisBooking.initWidgets();
+        thisBooking.initForm();
         thisBooking.getData();
     }
 
@@ -36,8 +37,6 @@ class Booking {
             ],
         };
 
-        // console.log('getData params', params);
-
         const urls = {
             booking: settings.db.url + '/' + settings.db.bookings
                 + '?' + params.booking.join('&'),
@@ -46,8 +45,6 @@ class Booking {
             eventsRepeat: settings.db.url + '/' + settings.db.events
                 + '?' + params.eventsRepeat.join('&'),
         };
-
-        // console.log('getData urls', urls);
 
         Promise.all([
             fetch(urls.booking),
@@ -65,9 +62,6 @@ class Booking {
                 ]);
             })
             .then(function ([bookings, eventsCurrent, eventsRepeat]) {
-                // console.log(bookings);
-                // console.log(eventsCurrent);
-                // console.log(eventsRepeat);
                 thisBooking.parseData(bookings, eventsCurrent, eventsRepeat);
             });
     }
@@ -96,8 +90,6 @@ class Booking {
             }
         }
 
-        // console.log('thisBooking.booked', thisBooking.booked);
-
         thisBooking.updateDOM();
     }
 
@@ -111,7 +103,6 @@ class Booking {
         const startHour = utils.hourToNumber(hour);
 
         for (let hourBlock = startHour; hourBlock < startHour + duration; hourBlock += 0.5) {
-            // console.log('loop', hourBlock);
 
             if (typeof thisBooking.booked[date][hourBlock] == 'undefined') {
                 thisBooking.booked[date][hourBlock] = [];
@@ -177,6 +168,8 @@ class Booking {
         thisBooking.dom.tables = thisBooking.dom.wrapper.querySelectorAll(select.booking.tables);
 
         thisBooking.dom.tablesWrapper = thisBooking.dom.wrapper.querySelector(select.booking.tablesDiv);
+
+
     }
 
     initWidgets() {
@@ -215,10 +208,22 @@ class Booking {
         });
     }
 
+
+    initForm() {
+        const thisBooking = this;
+
+        thisBooking.dom.form = thisBooking.dom.wrapper.querySelector('.order-confirmation');
+        thisBooking.dom.formSubmit = thisBooking.dom.form.querySelector('.btn-secondary');
+
+        thisBooking.dom.formSubmit.addEventListener('click', function (event) {
+            event.preventDefault();
+            thisBooking.sendBooking();
+        })
+    }
+
     initTables(target) {
         const thisBooking = this;
         const clickedElement = target;
-        // console.log(target);
 
         // Check if the clicked item is a table
         if (clickedElement.classList.contains(classNames.booking.table)) {
@@ -267,6 +272,56 @@ class Booking {
             }
             thisBooking.selectedTable = false; // Reset the selected table
         }
+    }
+
+    sendBooking() {
+        const thisBooking = this;
+
+        const url = settings.db.url + '/' + settings.db.bookings;
+
+        const formWraper = document.querySelector(".order-confirmation");
+
+        const inputPhone = formWraper.querySelector("input[name='phone']");
+
+        const inputAddress = formWraper.querySelector("input[name='address']");
+
+        const bookingOptions = document.querySelector(".booking-options");
+
+        if (!inputPhone.value || !inputAddress.value) {
+            console.error('Brakuje wymaganych pól w formularzu.');
+            return;
+        }
+
+        const payload = {
+            date: thisBooking.date,
+            hour: thisBooking.hour,
+            table: parseInt(thisBooking.selectedTable) || null,
+            duration: parseInt(thisBooking.peopleAmount.correctValue),
+            ppl: parseInt(thisBooking.hoursAmount.correctValue),
+            starters: [],
+            phone: inputPhone.value,
+            address: inputAddress.value,
+        };
+
+        const starterCheckboxes = bookingOptions.querySelectorAll('input[name="starter"]:checked');
+        starterCheckboxes.forEach(checkbox => payload.starters.push(checkbox.value));
+
+
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        };
+
+        fetch(url, options)
+            .then(function (response) {
+                return response.json();
+            }).then(function (parsedResponse) {
+                console.log('parsedResponse', parsedResponse);
+                thisBooking.makeBooked(payload.date, thisBooking.hourPicker.correctValue, payload.duration, parseInt(payload.table));
+            });
     }
 }
 

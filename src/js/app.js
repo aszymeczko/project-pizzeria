@@ -2,6 +2,7 @@ import { classNames, select, settings } from './settings.js';
 import Product from './components/Product.js';
 import Cart from './components/Cart.js';
 import Booking from './components/Booking.js';
+import Home from './components/Home.js';
 
 export const app = {
   initPages: function () {
@@ -93,18 +94,19 @@ export const app = {
 
   init: function () {
     const thisApp = this;
-    // console.log('*** App starting ***');
-    // console.log('thisApp:', thisApp);
-    // console.log('classNames:', classNames);
-    // console.log('settings:', settings);
-    // console.log('templates:', templates);
 
     thisApp.initPages();
     thisApp.initData();
     thisApp.initCart();
     thisApp.initBooking();
+    thisApp.initHome();
   },
+  initHome: function () {
+    const thisApp = this;
 
+    const homeElm = document.querySelector(".home-wrapper");
+    thisApp.home = new Home(homeElm);
+  },
   initCart: function () {
     const thisApp = this;
 
